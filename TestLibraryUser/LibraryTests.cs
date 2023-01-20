@@ -22,6 +22,7 @@ namespace TestLibraryUser
         {
             //Make LibraryToBeModified constructor add one to TestInjection counter. This creates new DLL.
             InsertionFactory.ModifyTypeConstructor<LibraryToBeModified>(typeof(TestInjection), nameof(TestInjection.AddCounter));
+            InsertionFactory.ModifyTypeConstructor<UserOfTheLibrary>(typeof(TestInjection), nameof(TestInjection.AddCounter));
 
             //Create a new AssemblyLoadContext to load the modified libraries respecting new DLLs from InsertionFactory
             AssemblyLoadContextThatUsesInsertionFactoryLibs alc = new();
@@ -30,11 +31,12 @@ namespace TestLibraryUser
             var assembly = alc.LoadFromAssemblyName(typeof(UserOfTheLibrary).Assembly.GetName());
 
             //Instantiate an item
-            var userType = assembly.GetType(nameof(UserOfTheLibrary));
+            var userType = assembly.GetType(typeof(UserOfTheLibrary).FullName);
             object result = Activator.CreateInstance(userType);
 
+            var dbg = TestInjection.Counter;
             //Check that modified dll actually worked
-            Assert.AreEqual(TestInjection.Counter, 2);
+            Assert.AreEqual(TestInjection.Counter, 3);
             Assert.Pass();
         }
     }
